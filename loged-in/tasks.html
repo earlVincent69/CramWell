@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CramWell | Tasks</title>
+	<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+	<header>
+		<div class="logo">
+			<img src="../image/cramWell.png" alt="CramWell Logo" style="width: 215px; height: auto;">
+		</div>
+		<nav>
+			<a href="index.html">Home</a>
+			<a href="tasks.html" class="active">Tasks</a>
+			<a href="calendar.html" >Calendar</a>
+			<a href="about.html">About</a>
+			<a href="../loged-out/index.html" class="login-btn">Log Out</a>
+		</nav>
+	</header>
+
+	<main class="task-container">
+		<section class="task-list">
+			<h2>My Tasks</h2>
+			<button class="new-task">+ New Task</button>
+
+			<table id="taskTable">
+				<thead>
+					<tr>
+						<th>Task Name</th>
+						<th>Deadline</th>
+						<th>Status</th>
+						<th>Priority</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+
+			<h3>Completed</h3>
+			<div class="completed-box" id="completedList"></div>
+		</section>
+
+		<aside class="summary-box">
+			<h1>Task Summary</h1>
+			<p><span id="completedCount">0</span> Completed</p>
+			<p><span id="progressCount">0</span> In Progress</p>
+			<p><span id="overdueCount">0</span> Overdue</p>
+			<div class="circle"  id="progressCircle">0%
+			
+			</div>
+		</aside>
+	</main>
+
+	<div id="taskModal" class="modal">
+		<div class="modal-content">
+			<h3>Add New Task</h3>
+			<input type="text" id="taskName" placeholder="Task Name">
+			<input type="date" id="taskDeadline">
+			<select id="taskPriority">
+				<option value="Low">Low</option>
+				<option value="Medium">Medium</option>
+				<option value="High">High</option>
+			</select>
+			<button id="addTaskBtn">Add Task</button>
+			<button id="closeModal">Cancel</button>
+		</div>
+	</div>
+
+	<script>
+		const newTaskBtn = document.querySelector('.new-task');
+		const modal = document.getElementById('taskModal');
+		const closeModal = document.getElementById('closeModal');
+		const addTaskBtn = document.getElementById('addTaskBtn');
+		const taskTable = document.querySelector('#taskTable tbody');
+		const completedList = document.getElementById('completedList');
+
+		let tasks = [];
+
+		const savedTasks = localStorage.getItem('tasks');
+		if (savedTasks) {
+			tasks = JSON.parse(savedTasks);
+			updateUI();
+		}
+
+		newTaskBtn.onclick = () => modal.style.display = 'flex';
+		closeModal.onclick = () => modal.style.display = 'none';
+
+		addTaskBtn.onclick = () => {
+			const name = document.getElementById('taskName').value.trim();
+			const deadline = document.getElementById('taskDeadline').value;
+			const priority = document.getElementById('taskPriority').value;
+
+			if (!name || !deadline) return alert('Please fill in all fields.');
+
+			const task = { name, deadline, status: "In Progress", priority };
+			tasks.push(task);
+			updateUI();
+			modal.style.display = 'none';
+
+			document.querySelectorAll('#taskModal input').forEach(el => el.value = '');
+			document.getElementById('taskPriority').value = 'Low';
+		};
+
+		function updateUI() {
+			taskTable.innerHTML = '';
+			completedList.innerHTML = '';
+			let completed = 0, inProgress = 0, overdue = 0;
+
+			tasks.forEach((task, i) => {
+				const today = new Date();
+				const deadlineDate = new Date(task.deadline + "T23:59:59");
+				if (task.status !== "Completed" && today > deadlineDate) {
+					task.status = "Overdue";
+				}
+
+				if (task.status === 'Completed') {
+					completed++;
+					completedList.innerHTML += `
+						<div class="completed-item">
+							<span>${task.name}</span>
+							<button class="remove-btn" data-index="${i}">Remove</button>
+						</div>`;
+				} else {
+					if (task.status === 'In Progress') inProgress++;
+					if (task.status === 'Overdue') overdue++;
+
+					let dotColor = task.status === 'Overdue' ? 'red' : 'blue';
+
+					taskTable.innerHTML += `
+					<tr>
+						<td>${task.name}</td>
+						<td>${new Date(task.deadline).toDateString()}</td>
+						<td><span class="dot ${dotColor}"></span>${task.status}</td>
+						<td>${task.priority}</td>
+						<td><button class="complete-btn" data-index="${i}">Complete</button></td>
+					</tr>`;
+				}
+			});
+
+			document.querySelectorAll('.complete-btn').forEach(btn => {
+				btn.onclick = () => {
+					const i = parseInt(btn.getAttribute('data-index'));
+					tasks[i].status = 'Completed';
+					updateUI();
+				};
+			});
+
+			document.querySelectorAll('.remove-btn').forEach(btn => {
+				btn.onclick = () => {
+					const i = parseInt(btn.getAttribute('data-index'));
+					tasks.splice(i, 1);
+					updateUI();
+				};
+			});
+
+			document.getElementById('completedCount').textContent = completed;
+			document.getElementById('progressCount').textContent = inProgress;
+			document.getElementById('overdueCount').textContent = overdue;
+
+			const total = tasks.length;
+			const percent = total ? Math.round((completed / total) * 100) : 0;
+
+			const circle = document.getElementById('progressCircle');
+			circle.style.background = `conic-gradient(#1abc9c 0% ${percent}%, #c7d0cc ${percent}% 100%)`;
+			circle.textContent = percent + '%';
+
+
+			localStorage.setItem('tasks', JSON.stringify(tasks));
+		}
+		</script>
+
+
+</body>
+</html>

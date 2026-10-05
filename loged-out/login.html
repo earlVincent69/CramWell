@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>CramWell | Log In</title>
+	<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+	<header>
+		<div class="logo">
+			<img src="../image/cramWell.png" alt="CramWell Logo" style="width: 215px; height: auto;">
+		</div>
+		<nav>
+			<a href="index.html">Home</a>
+			<a href="tasks.html">Tasks</a>
+			<a href="calendar.html" >Calendar</a>
+			<a href="about.html">About</a>
+			<a href="login.html" class="login-btn" >Log In</a>
+		</nav>
+	</header>
+
+	<section class="content login-box">
+		<h1>Log In to CramWell</h1>
+		<p>Welcome back! Log in to manage your study planner.</p>
+		<form id="loginForm">
+			<input type="email" id="email" placeholder="Email" required><br>
+			<input type="password" id="password" placeholder="Password" required><br>
+			<button type="submit" class="btn">Log In</button>
+		</form>
+		<p>Don’t have an account? <a href="signup.html">Sign up here</a>.</p>
+	</section>
+
+	<script>
+		document.getElementById("loginForm").addEventListener("submit", function(e) {
+			e.preventDefault();
+
+			let email = document.getElementById("email").value;
+			let password = document.getElementById("password").value;
+
+			let savedEmail = localStorage.getItem("userEmail");
+			let savedPassword = localStorage.getItem("userPassword");
+
+			if (email === savedEmail && password === savedPassword) {
+				alert("Login successful!");
+				window.location.href = "../loged-in/index.html";
+			} else {
+				alert("Invalid email or password!");
+			}
+		});
+	</script>
+</body>
+</html>
